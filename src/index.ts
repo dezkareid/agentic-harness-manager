@@ -1,9 +1,9 @@
-import { createProgram } from './program.js';
-import { logger } from './utils/logger.js';
+import { EXIT, run } from './program.js';
 
-createProgram()
-  .parseAsync(process.argv)
-  .catch((error: unknown) => {
-    logger.error(error instanceof Error ? error.message : String(error));
-    process.exitCode = 1;
-  });
+process.once('SIGINT', () => {
+  process.exit(EXIT.interrupted);
+});
+
+void run(process.argv.slice(2)).then((code) => {
+  process.exitCode = code;
+});
