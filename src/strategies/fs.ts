@@ -1,9 +1,24 @@
-import { lstat, mkdir, readdir, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { chmod, lstat, mkdir, readdir, readFile, readlink, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { ExportAction, ExportResult, StrategyContext } from './types.js';
 
-/** File contents keyed by path relative to the item root; a single file uses the key `''`. */
-export type Tree = Map<string, Buffer>;
+export interface TreeFile {
+  content: Buffer;
+  /** Permission bits to preserve (e.g. executable skill scripts); default mode when unset. */
+  mode?: number;
+}
+
+/** Files keyed by path relative to the item root; a single file uses the key `''`. */
+export type Tree = Map<string, TreeFile>;
+
+/** A single generated file with default permissions. */
+export const textTree = (content: string | Buffer): Tree =>
+  new Map([['', { content: Buffer.isBuffer(content) ? content : Buffer.from(content) }]]);
+
+const readTreeFile = async (file: string): Promise<TreeFile> => ({
+  content: await readFile(file),
+  mode: (await stat(file)).mode & 0o777,
+});
 
 export type Existing
   = | { kind: 'missing' }
@@ -32,31 +47,39 @@ export const inspect = async (dest: string): Promise<Existing> => {
 /** Reads a file or a directory (recursively, dotfiles included) into a Tree. */
 export const readTree = async (source: string, isDirectory: boolean): Promise<Tree> => {
   if (!isDirectory) {
-    return new Map([['', await readFile(source)]]);
+    return new Map([['', await readTreeFile(source)]]);
   }
   const entries = await readdir(source, { recursive: true, withFileTypes: true });
   const tree: Tree = new Map();
   for (const entry of entries.filter(dirent => dirent.isFile())) {
     const file = path.join(entry.parentPath, entry.name);
-    tree.set(path.relative(source, file).split(path.sep).join('/'), await readFile(file));
+    tree.set(path.relative(source, file).split(path.sep).join('/'), await readTreeFile(file));
   }
   return tree;
 };
 
+const filesEqual = (a: TreeFile, b: TreeFile | undefined): boolean =>
+  b !== undefined && a.content.equals(b.content) && (a.mode === undefined || b.mode === undefined || a.mode === b.mode);
+
 export const treesEqual = (a: Tree, b: Tree): boolean =>
-  a.size === b.size && [...a].every(([key, content]) => b.get(key)?.equals(content) ?? false);
+  a.size === b.size && [...a].every(([key, file]) => filesEqual(file, b.get(key)));
+
+const writeTreeFile = async (file: string, entry: TreeFile): Promise<void> => {
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, entry.content);
+  if (entry.mode !== undefined) {
+    await chmod(file, entry.mode);
+  }
+};
 
 const writeTree = async (dest: string, tree: Tree, isDirectory: boolean): Promise<void> => {
   if (!isDirectory) {
-    await mkdir(path.dirname(dest), { recursive: true });
-    await writeFile(dest, tree.get('') ?? Buffer.alloc(0));
+    await writeTreeFile(dest, tree.get('') ?? { content: Buffer.alloc(0) });
     return;
   }
   await mkdir(dest, { recursive: true });
-  for (const [relative, content] of tree) {
-    const file = path.join(dest, ...relative.split('/'));
-    await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, content);
+  for (const [relative, entry] of tree) {
+    await writeTreeFile(path.join(dest, ...relative.split('/')), entry);
   }
 };
 
@@ -100,4 +123,4 @@ export const materialize = async (
 
 /** Writes generated text (e.g. a target-specific file) with the same idempotency rules. */
 export const writeGenerated = (dest: string, content: string, ctx: StrategyContext): Promise<ExportResult> =>
-  materialize(dest, new Map([['', Buffer.from(content)]]), false, 'rendered', ctx);
+  materialize(dest, textTree(content), false, 'rendered', ctx);

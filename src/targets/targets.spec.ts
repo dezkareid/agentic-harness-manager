@@ -90,6 +90,7 @@ describe('given the codex target', () => {
       'name = "reviewer"\ndescription = "Reviews pull requests."\nmodel = "sonnet"\ndeveloper_instructions = "You review pull requests.\\n"\n',
     );
     expect(summary(entries).filter(([, , , , action]) => action === 'skipped')).toEqual([
+      ['codex', 'context', 'style.md', 'style.md', 'skipped', 'inlined into the importing context file'],
       ['codex', 'hook', 'guard', path.join('.codex', 'hooks.json'), 'skipped', 'PreToolUse: handler type prompt not supported by codex'],
       ['codex', 'hook', 'guard', path.join('.codex', 'hooks.json'), 'skipped', 'event Notification not supported by codex'],
     ]);
@@ -137,13 +138,15 @@ describe('given codex and antigravity together', () => {
       ['codex', 'skill', 'code-review', path.join('.agents', 'skills', 'code-review'), 'shared', 'written by antigravity'],
       ['codex', 'skill', 'release-notes', path.join('.agents', 'skills', 'release-notes'), 'shared', 'written by antigravity'],
       ['codex', 'context', 'AGENTS.md', 'AGENTS.md', 'shared', 'written by antigravity'],
-      ['codex', 'context', 'style.md', 'style.md', 'shared', 'written by antigravity'],
     ]);
+    await expect(lstat(path.join(out, 'style.md'))).rejects.toThrow();
   });
 
   it('should keep the CLAUDE.md shim when claude-code shares AGENTS.md', async () => {
     await run({ targets: ['claude-code', 'codex'] });
     expect((await lstat(path.join(out, 'AGENTS.md'))).isSymbolicLink()).toBe(false);
+    // Codex inlines style.md, but Claude still needs it for its own @import.
+    expect((await lstat(path.join(out, 'style.md'))).isSymbolicLink()).toBe(true);
     expect(await read('CLAUDE.md')).toBe('@AGENTS.md\n');
   });
 });
@@ -160,6 +163,7 @@ describe('given the strands target', () => {
     expect(stub).toContain('reviewer = Agent(\n    name="reviewer",\n    description="Reviews pull requests.",\n    system_prompt="You review pull requests.\\n",\n).as_tool()');
     expect(stub).toContain('AGENT_TOOLS = [reviewer]');
     expect(summary(entries).filter(([, , , , action]) => action === 'skipped').map(row => row[5])).toEqual([
+      'inlined into the importing context file',
       'PreToolUse: handler type prompt not supported by strands',
       'event Notification not supported by strands',
     ]);
@@ -181,6 +185,6 @@ describe('given every target at once', () => {
     await run(all);
     const second = await run(all);
     expect(second.filter(entry => !['skipped', 'shared'].includes(entry.action))).toEqual([]);
-    expect(second.filter(entry => entry.action === 'skipped' && !['unchanged'].includes(entry.reason ?? '') && !entry.reason?.includes('not supported'))).toEqual([]);
+    expect(second.filter(entry => entry.action === 'skipped' && !['unchanged'].includes(entry.reason ?? '') && !entry.reason?.includes('not supported') && !entry.reason?.startsWith('inlined'))).toEqual([]);
   });
 });

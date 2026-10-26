@@ -38,6 +38,7 @@ src/
 ```
 
 - Loader fixtures live in `src/core/__fixtures__/` (`valid/`, `invalid/`).
+- End-to-end tests live in `test/e2e/` and drive the CLI (`run()`) against `test/fixtures/basic-harness/`. They assert each target's tree with vitest snapshots (`test/e2e/__snapshots__/`).
 - Tests live next to the code they cover with the `.spec.ts` suffix.
 - `dist/` is the build output and is gitignored.
 
@@ -173,7 +174,9 @@ Deprecated `.agents/workflows/` is never written.
 
 ### Multiple targets
 
-Targets run in the order antigravity → strands → codex → claude-code, so destinations shared between targets (`.agents/skills/*`, `AGENTS.md`) are written once as real files. Later targets report `shared`. `@path` lines in context files are inlined for every target except claude-code, which supports imports natively.
+Targets run in the order antigravity → strands → codex → claude-code, so destinations shared between targets (`.agents/skills/*`, `AGENTS.md`) are written once as real files. Later targets report `shared`. `@path` lines in context files are inlined for every target except claude-code, which supports imports natively. Context files that are only pulled in through an import are therefore skipped (`inlined into the importing context file`) by codex, antigravity and strands, and still exported for claude-code.
+
+Copies keep file permissions, so executable skill scripts stay executable.
 
 ## Development
 
@@ -203,8 +206,13 @@ Tests use **Vitest** with **BDD** conventions:
 - Pure functions are tested without mocks.
 
 ```bash
-pnpm test
+pnpm test                    # unit + e2e (CI does not write new snapshots)
+pnpm exec vitest run -u      # update snapshots after an intended layout change; review the diff
 ```
+
+- End-to-end tests export the fixture into a fresh `tmpdir` per test and never mutate the fixture.
+- When a target layout changes on purpose, update the snapshots and check that each listed path and type (`dir`, `file`, `symlink`) is what the agent expects.
+- CI runs on ubuntu (symlinks available); an optional `windows-latest` job runs with `continue-on-error`.
 
 ## Coding Standards & Style
 

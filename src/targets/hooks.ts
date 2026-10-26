@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { isDeepStrictEqual } from 'node:util';
 import type { HarnessItem } from '../core/types.js';
-import { inspect, materialize } from '../strategies/fs.js';
+import { inspect, materialize, textTree } from '../strategies/fs.js';
 import type { StrategyContext } from '../strategies/types.js';
 import type { TargetOutput } from './types.js';
 
@@ -56,8 +56,8 @@ export const updateJsonFile = async (
   if (exists && isDeepStrictEqual(current, next)) {
     return { dest: file, action: 'skipped', reason: 'unchanged' };
   }
-  const content = Buffer.from(`${JSON.stringify(next, null, 2)}\n`);
-  return { dest: file, ...(await materialize(file, new Map([['', content]]), false, 'merged', { ...ctx, force: true })) };
+  const content = `${JSON.stringify(next, null, 2)}\n`;
+  return { dest: file, ...(await materialize(file, textTree(content), false, 'merged', { ...ctx, force: true })) };
 };
 
 /** Merges `hooks` into the `hooks` key of a JSON settings file without touching other keys. */

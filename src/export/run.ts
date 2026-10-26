@@ -76,7 +76,10 @@ const writeItem = async (run: TargetRun, item: HarnessItem, dest: string, ctx: T
     ? await run.target.transform(item, dest, ctx)
     : [{ dest, ...(await getStrategy(ctx.settings.strategy).apply(item, dest, { ...run.strategy, tags: ctx.settings.tags })) }];
   assertInside(ctx.outputDir, outputs);
-  outputs.forEach(output => run.claims.set(output.dest, run.target.id));
+  // A deliberate skip (e.g. an inlined context file) leaves the path free for other targets.
+  outputs
+    .filter(output => output.action !== 'skipped' || output.reason === 'unchanged' || output.reason === 'exists')
+    .forEach(output => run.claims.set(output.dest, run.target.id));
   return outputs;
 };
 

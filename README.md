@@ -108,7 +108,9 @@ Deprecated `.agents/workflows/` is never written.
 
 ### Multiple targets
 
-Targets run in the order antigravity → strands → codex → claude-code, so destinations shared between targets (`.agents/skills/*`, `AGENTS.md`) are written once as real files. Later targets report `shared`. `@path` lines in context files are inlined for every target except claude-code, which supports imports natively.
+Targets run in the order antigravity → strands → codex → claude-code, so destinations shared between targets (`.agents/skills/*`, `AGENTS.md`) are written once as real files. Later targets report `shared`. `@path` lines in context files are inlined for every target except claude-code, which supports imports natively. Context files that are only pulled in through an import are therefore skipped (`inlined into the importing context file`) by codex, antigravity and strands, and still exported for claude-code.
+
+Copies keep file permissions, so executable skill scripts stay executable.
 
 ## Development
 

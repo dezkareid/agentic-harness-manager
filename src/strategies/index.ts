@@ -17,13 +17,13 @@ export const copyStrategy: Strategy = {
 
 const renderTree = async (item: HarnessItem, tags: string[]) => {
   const tree = await readTree(item.sourcePath, item.isDirectory);
-  for (const [relative, content] of tree) {
+  for (const [relative, entry] of tree) {
     const file = relative || path.basename(item.sourcePath);
     if (!isRenderable(file)) {
       continue;
     }
     try {
-      tree.set(relative, Buffer.from(renderTags(content.toString('utf8'), tags)));
+      tree.set(relative, { ...entry, content: Buffer.from(renderTags(entry.content.toString('utf8'), tags)) });
     }
     catch (error) {
       if (error instanceof RenderError) {
