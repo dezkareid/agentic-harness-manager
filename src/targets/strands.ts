@@ -8,7 +8,7 @@ import { applyStrategy, bodyOf } from './shared.js';
 import type { ExportedItem, Target, TargetOutput } from './types.js';
 
 export const STRANDS_CONTEXT_LIMIT = 16 * 1024;
-export const STRANDS_STUB = 'ahm.strands.py';
+export const STRANDS_STUB = 'ahm_strands.py';
 
 /** Claude hook events with a Strands equivalent. */
 const STRANDS_EVENTS = ['PreToolUse', 'PostToolUse'] as const;
@@ -123,7 +123,7 @@ ${renderAgents(agents)}`;
 
 /**
  * Strands: skills copied to `.agent/skills/<name>/` (the harness default scan dir, singular),
- * a flattened `AGENTS.md`, and hooks plus subagents generated as code in `ahm.strands.py`.
+ * a flattened `AGENTS.md`, and hooks plus subagents generated as code in `ahm_strands.py`.
  */
 export const strandsTarget: Target = {
   id: 'strands',

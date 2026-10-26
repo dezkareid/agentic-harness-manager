@@ -155,7 +155,7 @@ describe('given the strands target', () => {
   it('should copy skills to .agent/skills and generate the python stub', async () => {
     const entries = await run({ targets: ['strands'] });
     expect(await read('.agent', 'skills', 'code-review', 'SKILL.md')).toContain('name: code-review');
-    const stub = await read('ahm.strands.py');
+    const stub = await read('ahm_strands.py');
     expect(stub).toContain('class AhmHooks(HookProvider):');
     expect(stub).toContain('registry.add_callback(BeforeToolCallEvent, self.before_tool_call)');
     expect(stub).toContain('{"matcher": "Bash", "command": "./guard.sh"}');
@@ -171,11 +171,11 @@ describe('given the strands target', () => {
 
   it('should only overwrite an edited stub with force', async () => {
     await run({ targets: ['strands'] });
-    await writeFile(path.join(out, 'ahm.strands.py'), '# edited\n');
+    await writeFile(path.join(out, 'ahm_strands.py'), '# edited\n');
     const entries = await run({ targets: ['strands'] });
-    expect(entries.find(entry => entry.dest?.endsWith('ahm.strands.py') && !entry.kind)).toMatchObject({ action: 'skipped', reason: 'exists' });
+    expect(entries.find(entry => entry.dest?.endsWith('ahm_strands.py') && !entry.kind)).toMatchObject({ action: 'skipped', reason: 'exists' });
     await run({ targets: ['strands'] }, true);
-    expect(await read('ahm.strands.py')).toContain('class AhmHooks');
+    expect(await read('ahm_strands.py')).toContain('class AhmHooks');
   });
 });
 

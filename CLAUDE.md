@@ -170,7 +170,7 @@ Deprecated `.agents/workflows/` is never written.
 |---|---|
 | skills | `.agent/skills/<name>/` (singular, the harness default scan dir); names must be lowercase/hyphens, at most 64 chars |
 | context | `AGENTS.md` (flattened); warns above 16 KiB |
-| hooks + agents | generated `ahm.strands.py`: an `AhmHooks(HookProvider)` running `PreToolUse`/`PostToolUse` commands on `BeforeToolCallEvent`/`AfterToolCallEvent` via `subprocess`, and one `Agent(name, description, system_prompt).as_tool()` per agent collected in `AGENT_TOOLS`. Overwritten only with `--force` |
+| hooks + agents | generated `ahm_strands.py`: an `AhmHooks(HookProvider)` running `PreToolUse`/`PostToolUse` commands on `BeforeToolCallEvent`/`AfterToolCallEvent` via `subprocess`, and one `Agent(name, description, system_prompt).as_tool()` per agent collected in `AGENT_TOOLS`. Overwritten only with `--force` |
 
 ### Multiple targets
 

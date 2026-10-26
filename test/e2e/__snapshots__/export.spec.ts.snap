@@ -118,6 +118,6 @@ exports[`given the basic harness exported to each target > should produce the ex
   ".agent/skills/release-notes/scripts [dir]",
   ".agent/skills/release-notes/scripts/collect.sh [file]",
   "AGENTS.md [file]",
-  "ahm.strands.py [file]",
+  "ahm_strands.py [file]",
 ]
 `;
