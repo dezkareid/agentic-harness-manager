@@ -6,6 +6,13 @@
   "bin": {
     "ahm": "dist/index.js"
   },
+  "scripts": {
+    "build": "rollup -c",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "prepare": "husky"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dezkareid/agentic-harness-manager.git"
@@ -31,6 +38,32 @@
     "agents"
   ],
   "files": [
-    "dist"
-  ]
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "skills"
+  ],
+  "packageManager": "pnpm@10.30.1",
+  "dependencies": {
+    "commander": "14.0.2"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
+    "@dezkareid/eslint-plugin-web": "1.2.0",
+    "@eslint/js": "10.0.1",
+    "@rollup/plugin-commonjs": "29.0.3",
+    "@rollup/plugin-json": "6.1.0",
+    "@rollup/plugin-node-resolve": "16.0.3",
+    "@rollup/plugin-typescript": "12.3.0",
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "husky": "9.1.7",
+    "rollup": "4.64.7",
+    "tslib": "2.8.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.5"
+  }
 }
