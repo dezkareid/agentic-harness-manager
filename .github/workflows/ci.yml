@@ -33,6 +33,18 @@ jobs:
       - name: Build
         run: pnpm run build
 
+  # Optional Windows smoke run: symlinks need Developer Mode there, so failures never block.
+  test-windows:
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-js
+      - name: Test library
+        run: pnpm test
+
   release:
     needs: test
     if: github.event_name == 'push'

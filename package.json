@@ -8,10 +8,12 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "dogfood": "node dist/index.js --quiet export --target claude-code",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepack": "pnpm run build && pnpm run dogfood"
   },
   "repository": {
     "type": "git",
@@ -46,7 +48,9 @@
   ],
   "packageManager": "pnpm@10.30.1",
   "dependencies": {
-    "commander": "14.0.2"
+    "commander": "14.0.2",
+    "yaml": "2.9.1",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.3",

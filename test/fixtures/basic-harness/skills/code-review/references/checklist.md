@@ -1,0 +1,2 @@
+- Error handling on every I/O call
+- No unchecked array indexing

@@ -1,0 +1,123 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`given the basic harness exported to each target > should produce the expected antigravity tree > report 1`] = `
+[
+  "antigravity skill:code-review copied",
+  "antigravity skill:release-notes copied",
+  "antigravity context:AGENTS.md copied",
+  "antigravity context:conventions.md skipped (inlined into the importing context file)",
+  "antigravity agent:docs-writer copied",
+  "antigravity agent:reviewer copied",
+  "antigravity -:- merged",
+  "antigravity hook:quality skipped (event UserPromptSubmit not supported by antigravity)",
+  "antigravity hook:quality skipped (event Notification not supported by antigravity)",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected antigravity tree > tree 1`] = `
+[
+  ".agents [dir]",
+  ".agents/agents [dir]",
+  ".agents/agents/docs-writer.md [file]",
+  ".agents/agents/reviewer.md [file]",
+  ".agents/hooks.json [file]",
+  ".agents/skills [dir]",
+  ".agents/skills/code-review [dir]",
+  ".agents/skills/code-review/SKILL.md [file]",
+  ".agents/skills/code-review/references [dir]",
+  ".agents/skills/code-review/references/checklist.md [file]",
+  ".agents/skills/release-notes [dir]",
+  ".agents/skills/release-notes/SKILL.md [file]",
+  ".agents/skills/release-notes/scripts [dir]",
+  ".agents/skills/release-notes/scripts/collect.sh [file]",
+  "AGENTS.md [file]",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected claude-code tree > report 1`] = `
+[
+  "claude-code skill:code-review linked",
+  "claude-code skill:release-notes linked",
+  "claude-code context:AGENTS.md linked",
+  "claude-code context:conventions.md linked",
+  "claude-code agent:docs-writer linked",
+  "claude-code agent:reviewer linked",
+  "claude-code context:CLAUDE.md rendered",
+  "claude-code -:- merged",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected claude-code tree > tree 1`] = `
+[
+  ".claude [dir]",
+  ".claude/agents [dir]",
+  ".claude/agents/docs-writer.md [symlink]",
+  ".claude/agents/reviewer.md [symlink]",
+  ".claude/settings.json [file]",
+  ".claude/skills [dir]",
+  ".claude/skills/code-review [symlink]",
+  ".claude/skills/release-notes [symlink]",
+  "AGENTS.md [symlink]",
+  "CLAUDE.md [file]",
+  "conventions.md [symlink]",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected codex tree > report 1`] = `
+[
+  "codex skill:code-review linked",
+  "codex skill:release-notes linked",
+  "codex context:AGENTS.md copied",
+  "codex context:conventions.md skipped (inlined into the importing context file)",
+  "codex agent:docs-writer rendered",
+  "codex agent:reviewer rendered",
+  "codex -:- merged",
+  "codex hook:quality skipped (PreToolUse: handler type prompt not supported by codex)",
+  "codex hook:quality skipped (event Notification not supported by codex)",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected codex tree > tree 1`] = `
+[
+  ".agents [dir]",
+  ".agents/skills [dir]",
+  ".agents/skills/code-review [symlink]",
+  ".agents/skills/release-notes [symlink]",
+  ".codex [dir]",
+  ".codex/agents [dir]",
+  ".codex/agents/docs-writer.toml [file]",
+  ".codex/agents/reviewer.toml [file]",
+  ".codex/hooks.json [file]",
+  "AGENTS.md [file]",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected strands tree > report 1`] = `
+[
+  "strands skill:code-review copied",
+  "strands skill:release-notes copied",
+  "strands context:AGENTS.md copied",
+  "strands context:conventions.md skipped (inlined into the importing context file)",
+  "strands -:- rendered",
+  "strands hook:quality skipped (PreToolUse: handler type prompt not supported by strands)",
+  "strands hook:quality skipped (event UserPromptSubmit not supported by strands)",
+  "strands hook:quality skipped (event Notification not supported by strands)",
+]
+`;
+
+exports[`given the basic harness exported to each target > should produce the expected strands tree > tree 1`] = `
+[
+  ".agent [dir]",
+  ".agent/skills [dir]",
+  ".agent/skills/code-review [dir]",
+  ".agent/skills/code-review/SKILL.md [file]",
+  ".agent/skills/code-review/references [dir]",
+  ".agent/skills/code-review/references/checklist.md [file]",
+  ".agent/skills/release-notes [dir]",
+  ".agent/skills/release-notes/SKILL.md [file]",
+  ".agent/skills/release-notes/scripts [dir]",
+  ".agent/skills/release-notes/scripts/collect.sh [file]",
+  "AGENTS.md [file]",
+  "ahm_strands.py [file]",
+]
+`;

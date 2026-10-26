@@ -1,0 +1,2 @@
+# Keep fixtures and snapshots byte-identical on every OS (Windows CI checks out with LF too)
+* text=auto eol=lf
