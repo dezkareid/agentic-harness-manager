@@ -23,6 +23,7 @@ Always use exact versions for dependencies. Do not use `^` or `~`.
 src/
 ├── index.ts          # Binary entry point (rollup input → dist/index.js)
 ├── program.ts        # Commander program definition
+├── core/             # Harness model (types.ts), frontmatter parsing and the pure loader
 └── utils/
     └── logger.ts     # The only place allowed to write to stdout/stderr
 .github/
@@ -31,8 +32,25 @@ src/
 └── workflows/ci.yml  # test → release
 ```
 
+- Loader fixtures live in `src/core/__fixtures__/` (`valid/`, `invalid/`).
 - Tests live next to the code they cover with the `.spec.ts` suffix.
 - `dist/` is the build output and is gitignored.
+
+## Harness Source Layout
+
+`ahm` reads a harness folder (default `./harness`) into an in-memory `Harness` (`src/core/types.ts`). The loader (`loadHarness`) never writes to disk, so `ahm list` and `--dry-run` reuse it.
+
+```text
+harness/
+├── skills/<name>/SKILL.md   # + optional references/, scripts/, assets/; exported as a directory
+├── context/*.md             # AGENTS.md is the canonical context file
+├── hooks/*.json             # Claude-shaped: { "hooks": { "<Event>": [ ... ] } }
+└── agents/<name>.md         # YAML frontmatter + Markdown body
+```
+
+- **Skill frontmatter** (Agent Skills standard): `description` required (≤ 1024 chars); `name` optional, defaults to the folder name, must be lowercase letters/numbers/single hyphens, 1–64 chars, and must match the folder. Unknown keys are preserved.
+- **Agent frontmatter**: `name` and `description` required; `tools` (string or list) and `model` optional. Unknown keys are preserved.
+- Invalid files fail the load with one `HarnessLoadError` listing every offending path. Empty folders and ignored files produce warnings.
 
 ## Development
 
