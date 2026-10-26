@@ -42,21 +42,24 @@ const readJsonObject = async (file: string): Promise<Record<string, unknown>> =>
 };
 
 /**
- * Merges `hooks` into the `hooks` key of a JSON settings file without touching other keys.
- * Merging never needs `--force`; an unchanged file is reported as `skipped (unchanged)`.
+ * Rewrites a JSON object file through `update`. Merging never needs `--force`; when the data
+ * is unchanged the user's file (and its formatting) is left alone.
  */
-export const mergeHooksIntoJson = async (
+export const updateJsonFile = async (
   file: string,
-  hooks: HooksByEvent,
+  update: (current: Record<string, unknown>) => Record<string, unknown>,
   ctx: StrategyContext,
 ): Promise<TargetOutput> => {
   const exists = (await inspect(file)).kind !== 'missing';
   const current = await readJsonObject(file);
-  const next = { ...current, hooks: mergeHooks((current.hooks ?? {}) as HooksByEvent, hooks) };
+  const next = update(current);
   if (exists && isDeepStrictEqual(current, next)) {
-    // Same data: rewriting would only reformat the user's file, so leave it alone.
     return { dest: file, action: 'skipped', reason: 'unchanged' };
   }
   const content = Buffer.from(`${JSON.stringify(next, null, 2)}\n`);
   return { dest: file, ...(await materialize(file, new Map([['', content]]), false, 'merged', { ...ctx, force: true })) };
 };
+
+/** Merges `hooks` into the `hooks` key of a JSON settings file without touching other keys. */
+export const mergeHooksIntoJson = (file: string, hooks: HooksByEvent, ctx: StrategyContext): Promise<TargetOutput> =>
+  updateJsonFile(file, current => ({ ...current, hooks: mergeHooks((current.hooks ?? {}) as HooksByEvent, hooks) }), ctx);

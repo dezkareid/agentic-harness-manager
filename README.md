@@ -78,6 +78,38 @@ A target maps harness items onto the layout an agent expects (`src/targets/`). I
 
 Legacy `.claude/commands/` is never written, because skills supersede commands.
 
+### codex (default strategy `symlink`)
+
+| Kind | Output |
+|---|---|
+| skills | `.agents/skills/<name>/`. Directory symlinks only, because Codex never follows file symlinks |
+| context | `AGENTS.md` as a real file with `@` imports inlined; warns above 32 KiB |
+| hooks | merged into `.codex/hooks.json` (Claude shape). Only the 12 Codex events and `command`/`mcp_tool` handlers are kept; the rest are reported `skipped` |
+| agents | `.codex/agents/<name>.toml` with `name`, `description`, `model`, `developer_instructions` (the body) |
+
+### antigravity (default strategy `copy`)
+
+| Kind | Output |
+|---|---|
+| skills | `.agents/skills/<name>/`, the same directory as Codex. When both run into the same `outputDir`, it is written once and Codex reports `shared` |
+| context | `AGENTS.md` (flattened) |
+| hooks | `.agents/hooks.json` as `{ "<hook-file-name>": { "<Event>": [handlers] } }`, with each group's `matcher` copied onto its handlers. Only `SessionStart`, `PreToolUse`, `PostToolUse` and `Stop` are kept; other hook names in the file are preserved |
+| agents | `.agents/agents/<name>.md`. `tools` are passed through with a warning that ids differ |
+
+Deprecated `.agents/workflows/` is never written.
+
+### strands (default strategy `copy`)
+
+| Kind | Output |
+|---|---|
+| skills | `.agent/skills/<name>/` (singular, the harness default scan dir); names must be lowercase/hyphens, at most 64 chars |
+| context | `AGENTS.md` (flattened); warns above 16 KiB |
+| hooks + agents | generated `ahm.strands.py`: an `AhmHooks(HookProvider)` running `PreToolUse`/`PostToolUse` commands on `BeforeToolCallEvent`/`AfterToolCallEvent` via `subprocess`, and one `Agent(name, description, system_prompt).as_tool()` per agent collected in `AGENT_TOOLS`. Overwritten only with `--force` |
+
+### Multiple targets
+
+Targets run in the order antigravity → strands → codex → claude-code, so destinations shared between targets (`.agents/skills/*`, `AGENTS.md`) are written once as real files. Later targets report `shared`. `@path` lines in context files are inlined for every target except claude-code, which supports imports natively.
+
 ## Development
 
 ```bash

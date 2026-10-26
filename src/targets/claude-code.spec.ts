@@ -61,8 +61,8 @@ describe('given the fixture harness and the default symlink strategy', () => {
       ['skill', path.join('.claude', 'skills', 'code-review'), 'linked'],
       ['skill', path.join('.claude', 'skills', 'release-notes'), 'linked'],
       ['context', 'AGENTS.md', 'linked'],
-      ['context', 'CLAUDE.md', 'rendered'],
       ['agent', path.join('.claude', 'agents', 'reviewer.md'), 'linked'],
+      ['context', 'CLAUDE.md', 'rendered'],
       ['-', path.join('.claude', 'settings.json'), 'merged'],
     ]);
   });

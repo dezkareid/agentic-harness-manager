@@ -24,18 +24,28 @@ export interface TargetContext {
   strategy: StrategyContext;
 }
 
+export interface ExportedItem {
+  item: HarnessItem;
+  settings: ItemSettings;
+}
+
 export interface PostProcessContext {
   harness: Harness;
   outputDir: string;
   strategy: StrategyContext;
+  /** Items exported as files or directories into this output directory (shared ones included). */
+  exported: ExportedItem[];
   /** Items whose layout mode was `merge`, in harness order. */
-  merged: HarnessItem[];
+  merged: ExportedItem[];
 }
 
 /** One file or directory written (or skipped) for an item. */
 export interface TargetOutput extends ExportResult {
   /** Absolute destination path. */
   dest: string;
+  /** Overrides the reported item for outputs produced by postProcess. */
+  kind?: HarnessKind;
+  name?: string;
 }
 
 export interface Target {
