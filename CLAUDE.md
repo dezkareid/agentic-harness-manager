@@ -24,6 +24,8 @@ src/
 ├── index.ts          # Binary entry point (rollup input → dist/index.js)
 ├── program.ts        # Commander program definition
 ├── config/           # Zod schema, config discovery (load.ts) and CLI/config merge (resolve.ts)
+├── targets/          # Target interface, claude-code target and hook merging
+├── export/           # exportHarness engine: settings → layout → strategy/transform → report
 ├── strategies/       # symlink, copy and override strategies plus the tag renderer
 ├── core/             # Harness model (types.ts), frontmatter parsing and the pure loader
 └── utils/
@@ -102,6 +104,21 @@ Never exported.
 Nested or unbalanced blocks fail with the file path and line number. Unknown `ahm:` markers are left untouched. Markers inside JSON string values are not supported; hooks use per-target transforms instead.
 
 **Idempotency**: re-running is safe. A symlink that already points at the same source, or a file with identical content, is reported as `skipped (unchanged)`. A destination that differs is reported as `skipped (exists)` and only replaced with `--force`.
+
+## Targets
+
+A target maps harness items onto the layout an agent expects (`src/targets/`). It implements `Target`: `id`, `defaultStrategy`, `supports(kind)`, `layout(item, ctx) → { destPath, mode: 'dir' | 'file' | 'merge' }`, and optional `transform` (custom output for an item) and `postProcess` (runs once per target, e.g. to merge hooks). The engine in `src/export/run.ts` (`exportHarness`) resolves per-item settings, skips omitted or unsupported items, applies the strategy or transform, and refuses to write outside the resolved `outputDir`.
+
+### claude-code (default strategy `symlink`)
+
+| Kind | Output |
+|---|---|
+| skills | `.claude/skills/<name>/` (directory) |
+| agents | `.claude/agents/<name>.md` |
+| context | `AGENTS.md` plus a `CLAUDE.md` containing `@AGENTS.md`. With `override`, a rendered `CLAUDE.md` only |
+| hooks | merged into `.claude/settings.json` → `hooks` (deep-merged by event, identical entries deduped, other keys untouched, no `--force` needed) |
+
+Legacy `.claude/commands/` is never written, because skills supersede commands.
 
 ## Development
 

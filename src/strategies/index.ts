@@ -1,4 +1,4 @@
-import { mkdir, symlink } from 'node:fs/promises';
+import { mkdir, realpath, symlink } from 'node:fs/promises';
 import path from 'node:path';
 import type { StrategyName } from '../config/schema.js';
 import type { HarnessItem } from '../core/types.js';
@@ -63,7 +63,8 @@ export const symlinkStrategy: Strategy = {
       return copyInstead(item, destPath, ctx, 'symlinks disabled');
     }
     const existing = await inspect(destPath);
-    if (existing.kind === 'symlink' && existing.target === item.sourcePath) {
+    const source = await realpath(item.sourcePath);
+    if (existing.kind === 'symlink' && (await realpath(destPath).catch(() => undefined)) === source) {
       return { action: 'skipped', reason: 'unchanged' };
     }
     if (existing.kind !== 'missing' && !ctx.force) {
@@ -77,7 +78,9 @@ export const symlinkStrategy: Strategy = {
     }
     await mkdir(path.dirname(destPath), { recursive: true });
     try {
-      await symlink(path.relative(path.dirname(destPath), item.sourcePath), destPath, item.isDirectory ? 'dir' : 'file');
+      // Relative to the real parent so links survive symlinked path segments (e.g. /var → /private/var).
+      const parent = await realpath(path.dirname(destPath));
+      await symlink(path.relative(parent, source), destPath, item.isDirectory ? 'dir' : 'file');
       return { action: 'linked' };
     }
     catch (error) {
