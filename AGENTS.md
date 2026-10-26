@@ -242,6 +242,7 @@ Errors surface as exit codes returned by `run()` instead of calling `process.exi
 
 - **Build**: rollup bundles `src/index.ts` into a single ESM file `dist/index.js` with the `#!/usr/bin/env node` banner. All dependencies and Node builtins are external.
 - **Publish**: semantic-release runs in GitHub Actions on pushes to `main`, `next`, `beta` and `alpha`. `@anolilab/semantic-release-pnpm` bumps the version and publishes to npm with **OIDC trusted publishing and provenance**; `@semantic-release/exec` rebuilds after the version bump so `ahm --version` matches the release. Tags use `agentic-harness-manager-v${version}`.
+- **No release commits**: the release never pushes commits to `main`. The version bump only exists in the published package, `package.json` in git stays at `0.0.0`, and the **git tags are the source of truth** for versions. Release notes are the changelog and live in **GitHub Releases** (`@semantic-release/release-notes-generator` + `@semantic-release/github`); there is no `CHANGELOG.md` in the repo. This follows semantic-release's own recommendation and keeps the `main` ruleset intact.
 - Published `files`: `dist`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `skills`.
 
 ## CI configuration
@@ -249,9 +250,10 @@ Errors surface as exit codes returned by `run()` instead of calling `process.exi
 The pipeline is designed to need **zero stored secrets and zero repository variables**.
 
 - **npm publish**: OIDC trusted publishing (Trusted Publisher configured on npmjs.com for `dezkareid/agentic-harness-manager`, workflow `ci.yml`). No `NPM_TOKEN`. Requires `id-token: write` on the release job.
-- **GitHub Release, CHANGELOG commit/tag push, issue/PR comments**: the automatic `secrets.GITHUB_TOKEN`, scoped by the release job `permissions` (`contents: write`, `issues: write`, `pull-requests: write`, `id-token: write`).
+- **GitHub Release, tag push, issue/PR comments**: the automatic `secrets.GITHUB_TOKEN`, scoped by the release job `permissions` (`contents: write`, `issues: write`, `pull-requests: write`, `id-token: write`).
+- **`main` ruleset** (`main`, id `25861833`): changes must go through a PR, with required status checks, and **no bypass actors**. That is why the release does not use `@semantic-release/git` or `@semantic-release/changelog`: a direct `chore(release)` push to `main` fails with `GH013: Changes must be made through a pull request`. Pushing tags is not affected by the ruleset.
 - **Plain `env:` entries** (not GitHub variables): `HUSKY: 0` at workflow level, `NPM_CONFIG_PROVENANCE: true` on the release job.
-- **Not needed now**: a PAT. Only if `main` later gets a ruleset the automatic token cannot bypass, or release commits must trigger other workflows, add a PAT as a repo secret (`gh secret set RELEASE_TOKEN`) and pass it as `github-token` to the semantic-release action.
+- **If a committed `CHANGELOG.md` is ever required**, prefer a release-PR flow (release-please or Changesets), which respects the ruleset with no bypass. The alternative is a GitHub App added as a ruleset bypass actor, with short-lived tokens from `actions/create-github-app-token` passed as `github-token`. Avoid a PAT plus admin bypass.
 - **Verify**: `gh secret list` and `gh variable list` should both be empty.
 
 ## Debugging

@@ -189,4 +189,4 @@ pnpm lint
 pnpm test
 ```
 
-Releases are automated with semantic-release from `main` (see [AGENTS.md](./AGENTS.md#ci-configuration)).
+Releases are automated with semantic-release from `main` (see [AGENTS.md](./AGENTS.md#ci-configuration)). Release notes, which serve as the changelog, are published on [GitHub Releases](https://github.com/dezkareid/agentic-harness-manager/releases).
