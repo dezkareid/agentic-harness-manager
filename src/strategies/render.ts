@@ -7,7 +7,7 @@ export class RenderError extends Error {
 
 const OPEN_MARKER = /^\s*<!--\s*ahm:(tag:([^>]*?)|omit)\s*-->\s*$/;
 const CLOSE_MARKER = /^\s*<!--\s*\/ahm:(tag|omit)\s*-->\s*$/;
-const ONLY_MARKER = /^(\s*)<!--\s*ahm:only:([^>]*?)\s*-->[ \t]?(.*)$/;
+const ONLY_MARKER = /^(\s*)<!--\s*ahm:only:([^>]*?)\s*-->[ \t]?([^\n]*)$/;
 
 interface OpenBlock {
   type: 'tag' | 'omit';

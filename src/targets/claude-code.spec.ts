@@ -72,7 +72,10 @@ describe('given the fixture harness and the default symlink strategy', () => {
     const skill = path.join(out, '.claude', 'skills', 'code-review');
     expect((await lstat(skill)).isSymbolicLink()).toBe(true);
     expect(await realpath(skill)).toBe(await realpath(path.join(fixture, 'skills', 'code-review')));
-    expect(path.isAbsolute(await readlink(skill))).toBe(false);
+    // Windows directory links are junctions, which always store an absolute target.
+    if (process.platform !== 'win32') {
+      expect(path.isAbsolute(await readlink(skill))).toBe(false);
+    }
     expect(await readFile(path.join(skill, 'references', 'checklist.md'), 'utf8')).toContain('error handling');
   });
 

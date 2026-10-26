@@ -67,3 +67,10 @@ describe('given malformed blocks', () => {
     expect(() => renderTags(source, ['a'])).toThrow(message);
   });
 });
+
+describe('given CRLF line endings', () => {
+  it('should render blocks and only markers while keeping CRLF', () => {
+    const source = ['a', '<!-- ahm:tag:x -->', 'kept', '<!-- /ahm:tag -->', '<!-- ahm:only:y --> dropped', '<!-- ahm:only:x --> only', 'b', ''].join('\r\n');
+    expect(renderTags(source, ['x'])).toBe(['a', 'kept', 'only', 'b', ''].join('\r\n'));
+  });
+});

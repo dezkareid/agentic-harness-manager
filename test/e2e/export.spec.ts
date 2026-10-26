@@ -189,7 +189,8 @@ describe('given a pre-existing Claude Code settings.json', () => {
   });
 });
 
-describe('given skill scripts', () => {
+// Windows has no executable bit to preserve.
+describe.skipIf(process.platform === 'win32')('given skill scripts', () => {
   it.each(['copy', 'override'])('should keep the executable bit with %s', async (strategy) => {
     await ahm('export', '--target', 'claude-code', '--strategy', strategy);
     const mode = (await lstat(path.join(cwd, '.claude', 'skills', 'release-notes', 'scripts', 'collect.sh'))).mode;

@@ -66,7 +66,7 @@ describe('given an invalid harness', () => {
   it('should report every invalid file with its path', async () => {
     const error = await loadError(root);
     const byFile = Object.fromEntries(
-      error.issues.map(issue => [path.relative(root, issue.path), issue.message]),
+      error.issues.map(issue => [path.relative(root, issue.path).split(path.sep).join('/'), issue.message]),
     );
     expect(Object.keys(byFile).sort()).toEqual([
       'agents/no-frontmatter.md',
