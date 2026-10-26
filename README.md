@@ -37,6 +37,32 @@ Config is discovered in this order (first match wins): `--config <path>`, `ahm.c
 
 Validation errors name the offending key path, e.g. `targets[1].strategy`.
 
+## Export Strategies
+
+A strategy turns one harness item into files in a target tree (`src/strategies/`). Each implements `apply(item, destPath, ctx) → { action: 'linked' | 'copied' | 'rendered' | 'skipped', reason? }`.
+
+- **`symlink`** (default for `claude-code` and `codex`): relative symlink to the source. Skills are linked as **whole directories**, because Codex follows directory symlinks but never file symlinks. If the filesystem refuses (`EPERM`, `ENOTSUP`, …) it warns and copies instead; `--no-symlink` always copies.
+- **`copy`** (default for `antigravity` and `strands`): plain recursive copy.
+- **`override`**: renders `.md`/`.json` files through tag blocks and always writes real files, even when the global strategy is `symlink`. Other files are copied unchanged.
+
+Tag markers must be on their own line:
+
+```markdown
+<!-- ahm:tag:codex,antigravity -->
+Only rendered for Codex and Antigravity.
+<!-- /ahm:tag -->
+
+<!-- ahm:omit -->
+Never exported.
+<!-- /ahm:omit -->
+
+<!-- ahm:only:claude-code --> - This line is only kept for Claude Code.
+```
+
+Nested or unbalanced blocks fail with the file path and line number. Unknown `ahm:` markers are left untouched. Markers inside JSON string values are not supported; hooks use per-target transforms instead.
+
+**Idempotency**: re-running is safe. A symlink that already points at the same source, or a file with identical content, is reported as `skipped (unchanged)`. A destination that differs is reported as `skipped (exists)` and only replaced with `--force`.
+
 ## Development
 
 ```bash
