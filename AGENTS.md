@@ -23,6 +23,7 @@ Always use exact versions for dependencies. Do not use `^` or `~`.
 src/
 ├── index.ts          # Binary entry point (rollup input → dist/index.js)
 ├── program.ts        # Commander program definition
+├── config/           # Zod schema, config discovery (load.ts) and CLI/config merge (resolve.ts)
 ├── core/             # Harness model (types.ts), frontmatter parsing and the pure loader
 └── utils/
     └── logger.ts     # The only place allowed to write to stdout/stderr
@@ -51,6 +52,29 @@ harness/
 - **Skill frontmatter** (Agent Skills standard): `description` required (≤ 1024 chars); `name` optional, defaults to the folder name, must be lowercase letters/numbers/single hyphens, 1–64 chars, and must match the folder. Unknown keys are preserved.
 - **Agent frontmatter**: `name` and `description` required; `tools` (string or list) and `model` optional. Unknown keys are preserved.
 - Invalid files fail the load with one `HarnessLoadError` listing every offending path. Empty folders and ignored files produce warnings.
+
+## Configuration
+
+Config is discovered in this order (first match wins): `--config <path>`, `ahm.config.json` (comments allowed), `ahm.config.yaml`, the `"ahm"` key in `package.json`, then built-in defaults. `ahm init` writes a commented starter `ahm.config.json` (use `--force` to overwrite).
+
+| Key | Type | Default |
+|---|---|---|
+| `source` | string | `./harness` |
+| `outputDir` | string | `.` |
+| `targets` | `(TargetId \| { id, outputDir?, strategy?, tags?, omit? })[]` | `[]` |
+| `defaultStrategy` | `symlink \| copy \| override` | per target |
+| `omit` | selector[] | `[]` |
+| `overrides` | `Record<selector, { strategy?, tags?, outputDir? }>` | `{}` |
+
+- `TargetId` is `claude-code`, `codex`, `antigravity` or `strands`.
+- A **selector** is `kind:glob` (`skill:internal-*`, `hook:*`) or a bare glob matched against the item name (`AGENTS.md`). `*` and `?` are supported.
+- Relative paths in the config resolve against the config file's directory; CLI paths resolve against the working directory.
+
+**Precedence** for `strategy` and `outputDir`: CLI flags > per-target config > per-item override (last matching selector wins) > global config > defaults. Per-target default strategies: `claude-code`/`codex` → `symlink`, `antigravity`/`strands` → `copy`.
+
+`tags` and `omit` accumulate across every level instead of replacing each other. Each target id is always an active tag, so `<!-- ahm:tag:codex -->` works without config.
+
+Validation errors name the offending key path, e.g. `targets[1].strategy`.
 
 ## Development
 

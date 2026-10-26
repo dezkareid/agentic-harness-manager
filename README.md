@@ -14,6 +14,29 @@ Or run it without installing:
 npx @dezkareid/agentic-harness-manager --help
 ```
 
+## Configuration
+
+Config is discovered in this order (first match wins): `--config <path>`, `ahm.config.json` (comments allowed), `ahm.config.yaml`, the `"ahm"` key in `package.json`, then built-in defaults. `ahm init` writes a commented starter `ahm.config.json` (use `--force` to overwrite).
+
+| Key | Type | Default |
+|---|---|---|
+| `source` | string | `./harness` |
+| `outputDir` | string | `.` |
+| `targets` | `(TargetId \| { id, outputDir?, strategy?, tags?, omit? })[]` | `[]` |
+| `defaultStrategy` | `symlink \| copy \| override` | per target |
+| `omit` | selector[] | `[]` |
+| `overrides` | `Record<selector, { strategy?, tags?, outputDir? }>` | `{}` |
+
+- `TargetId` is `claude-code`, `codex`, `antigravity` or `strands`.
+- A **selector** is `kind:glob` (`skill:internal-*`, `hook:*`) or a bare glob matched against the item name (`AGENTS.md`). `*` and `?` are supported.
+- Relative paths in the config resolve against the config file's directory; CLI paths resolve against the working directory.
+
+**Precedence** for `strategy` and `outputDir`: CLI flags > per-target config > per-item override (last matching selector wins) > global config > defaults. Per-target default strategies: `claude-code`/`codex` → `symlink`, `antigravity`/`strands` → `copy`.
+
+`tags` and `omit` accumulate across every level instead of replacing each other. Each target id is always an active tag, so `<!-- ahm:tag:codex -->` works without config.
+
+Validation errors name the offending key path, e.g. `targets[1].strategy`.
+
 ## Development
 
 ```bash
