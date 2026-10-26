@@ -4,7 +4,7 @@
   "description": "CLI to export an agentic harness (skills, context, hooks, subagents) to Claude Code, Codex, Antigravity and Strands",
   "type": "module",
   "bin": {
-    "ahm": "./dist/index.js"
+    "ahm": "dist/index.js"
   },
   "repository": {
     "type": "git",
