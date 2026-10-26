@@ -22,7 +22,8 @@ Always use exact versions for dependencies. Do not use `^` or `~`.
 ```text
 src/
 ├── index.ts          # Binary entry point (rollup input → dist/index.js)
-├── program.ts        # Commander program definition
+├── program.ts        # Commander program, commands and exit codes (run())
+├── cli/              # Flag validation (options.ts) and table/JSON output (format.ts)
 ├── config/           # Zod schema, config discovery (load.ts) and CLI/config merge (resolve.ts)
 ├── targets/          # Target interface, the four targets, hook merging, context flattening
 ├── export/           # exportHarness engine: settings → layout → strategy/transform → report
@@ -39,6 +40,28 @@ src/
 - Loader fixtures live in `src/core/__fixtures__/` (`valid/`, `invalid/`).
 - Tests live next to the code they cover with the `.spec.ts` suffix.
 - `dist/` is the build output and is gitignored.
+
+## CLI Usage
+
+```bash
+ahm export [--target <ids>] [--out <dir>] [--strategy symlink|copy|override] [--omit <selector>...] \
+           [--tag <tag>...] [--dry-run] [--force] [--no-symlink] [--config <path>] [--format table|json]
+ahm list   [--target <ids>] [--out <dir>] [--strategy <name>] [--omit ...] [--tag ...] [--config <path>] [--format table|json]
+ahm init   [--force]
+ahm --version | --help | <command> --help
+```
+
+- `--target` takes comma-separated ids and can be repeated: `--target claude-code,codex --target strands`.
+- `list` prints the plan (item × target × strategy × destination) without writing; `export --dry-run` prints exactly what `export` would do, including `skipped` reasons.
+- `--format json` prints a single JSON array of entries (`target`, `kind`, `name`, `strategy`, `action`, `dest`, `reason`) for scripting.
+- Global flags: `-q, --quiet` hides progress (command output, warnings and errors still print); `-v, --verbose` adds debug lines on stderr. Colors are only used on a TTY and are disabled by `NO_COLOR`.
+
+| Exit code | Meaning |
+|---|---|
+| `0` | success |
+| `1` | validation or config error (bad flag, invalid config, invalid harness, no targets) |
+| `2` | export errors: some items `failed`; the others were still exported |
+| `130` | interrupted (Ctrl+C) |
 
 ## Harness Source Layout
 
@@ -191,11 +214,19 @@ pnpm test
 
 ### Argument Parsing
 
-CLI arguments are parsed with **Commander.js** (`commander`). The program is built in `src/program.ts` (`createProgram()`) so tests can construct and inspect it without running the binary; `src/index.ts` only calls `parseAsync(process.argv)`.
+CLI arguments are parsed with **Commander.js** (`commander`). The program is built in `src/program.ts`: `createProgram()` defines the commands, and `run(argv, deps)` parses them and returns the exit code (commander runs with `exitOverride()`, so it never calls `process.exit`). Raw flags are validated and converted in `src/cli/options.ts` (`toCliOptions`) before `resolveConfig` merges them over the config file. `src/index.ts` only wires `SIGINT` → 130 and sets `process.exitCode`. Tests call `run()` with an injected `cwd` and logger; `src/smoke.spec.ts` builds and runs `dist/index.js`.
 
 ### I/O & Logging
 
-Never use `console.log` (or `console.*`) directly. All output goes through the logger in `src/utils/logger.ts`: `info` writes to stdout, `warn`/`error` write to stderr. `createLogger(stdout, stderr)` accepts custom streams for tests. Errors surface as a non-zero `process.exitCode` instead of calling `process.exit`.
+Never use `console.log` (or `console.*`) directly. All output goes through the logger in `src/utils/logger.ts`:
+
+- `info` writes progress to stdout and is hidden by `--quiet`.
+- `warn`, `error` and `debug` write to stderr; `debug` only shows with `--verbose`.
+- `print` and `printError` write command output verbatim (tables, JSON, commander help and usage errors) and ignore the level.
+- Colors are on only for a TTY without `NO_COLOR`.
+- `createLogger(stdout, stderr, { level, color })` accepts custom streams for tests.
+
+Errors surface as exit codes returned by `run()` instead of calling `process.exit`.
 
 ### Distribution / Compilation
 

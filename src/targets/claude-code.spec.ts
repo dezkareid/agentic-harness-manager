@@ -169,8 +169,12 @@ describe('given omissions and a custom output directory', () => {
     expect(await readdir(out)).toEqual(['nested']);
   });
 
-  it('should refuse items whose layout escapes outputDir', async () => {
+  it('should fail items whose layout escapes outputDir and keep exporting', async () => {
     harness.items.push({ ...harness.items.find(item => item.kind === 'agent')!, name: '../../../escape' });
-    await expect(run({ omit: ['hook:*'] })).rejects.toThrow('refusing to write outside');
+    const entries = await run({ omit: ['hook:*'] });
+    expect(entries.find(entry => entry.name === '../../../escape')).toMatchObject({
+      action: 'failed',
+      reason: expect.stringContaining('refusing to write outside'),
+    });
   });
 });

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { resolveItemSettings } from '../config/resolve.js';
 import type { ResolvedConfig, ResolvedTarget } from '../config/resolve.js';
-import type { TargetId } from '../config/schema.js';
+import type { StrategyName, TargetId } from '../config/schema.js';
 import type { Harness, HarnessItem, HarnessKind } from '../core/types.js';
 import { getStrategy } from '../strategies/index.js';
 import type { ExportAction, StrategyContext } from '../strategies/types.js';
@@ -13,6 +13,8 @@ export interface ExportEntry {
   name?: string;
   /** Absolute destination, when the entry maps to a path. */
   dest?: string;
+  /** Strategy resolved for the item, when one applies. */
+  strategy?: StrategyName;
   action: ExportAction;
   reason?: string;
 }
@@ -102,20 +104,33 @@ const exportItem = async (run: TargetRun, item: HarnessItem): Promise<void> => {
   }
   group.exported.push({ item, settings });
   const outputs = await writeItem(run, item, dest, ctx);
-  run.entries.push(...outputs.map(output => ({ ...base, ...output })));
+  run.entries.push(...outputs.map(output => ({ ...base, strategy: settings.strategy, ...output })));
 };
 
+const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
 const exportTarget = async (run: TargetRun): Promise<void> => {
+  // A failing item is reported as `failed` so the rest of the export still runs.
   for (const item of run.harness.items) {
-    await exportItem(run, item);
+    try {
+      await exportItem(run, item);
+    }
+    catch (error) {
+      run.entries.push({ target: run.target.id, kind: item.kind, name: item.name, action: 'failed', reason: errorMessage(error) });
+    }
   }
   if (!run.target.postProcess) {
     return;
   }
   for (const [outputDir, group] of run.groups) {
-    const outputs = await run.target.postProcess({ harness: run.harness, outputDir, strategy: run.strategy, ...group });
-    assertInside(outputDir, outputs);
-    run.entries.push(...outputs.map(output => ({ target: run.target.id, ...output })));
+    try {
+      const outputs = await run.target.postProcess({ harness: run.harness, outputDir, strategy: run.strategy, ...group });
+      assertInside(outputDir, outputs);
+      run.entries.push(...outputs.map(output => ({ target: run.target.id, ...output })));
+    }
+    catch (error) {
+      run.entries.push({ target: run.target.id, dest: outputDir, action: 'failed', reason: errorMessage(error) });
+    }
   }
 };
 

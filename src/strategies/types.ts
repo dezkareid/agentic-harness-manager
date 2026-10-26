@@ -1,7 +1,7 @@
 import type { StrategyName } from '../config/schema.js';
 import type { HarnessItem } from '../core/types.js';
 
-export type ExportAction = 'linked' | 'copied' | 'rendered' | 'merged' | 'shared' | 'skipped';
+export type ExportAction = 'linked' | 'copied' | 'rendered' | 'merged' | 'shared' | 'skipped' | 'failed';
 
 export interface ExportResult {
   action: ExportAction;

@@ -121,6 +121,28 @@ pnpm test
 
 Releases are automated with semantic-release from `main` (see [AGENTS.md](./AGENTS.md#ci-configuration)).
 
+## CLI Usage
+
+```bash
+ahm export [--target <ids>] [--out <dir>] [--strategy symlink|copy|override] [--omit <selector>...] \
+           [--tag <tag>...] [--dry-run] [--force] [--no-symlink] [--config <path>] [--format table|json]
+ahm list   [--target <ids>] [--out <dir>] [--strategy <name>] [--omit ...] [--tag ...] [--config <path>] [--format table|json]
+ahm init   [--force]
+ahm --version | --help | <command> --help
+```
+
+- `--target` takes comma-separated ids and can be repeated: `--target claude-code,codex --target strands`.
+- `list` prints the plan (item × target × strategy × destination) without writing; `export --dry-run` prints exactly what `export` would do, including `skipped` reasons.
+- `--format json` prints a single JSON array of entries (`target`, `kind`, `name`, `strategy`, `action`, `dest`, `reason`) for scripting.
+- Global flags: `-q, --quiet` hides progress (command output, warnings and errors still print); `-v, --verbose` adds debug lines on stderr. Colors are only used on a TTY and are disabled by `NO_COLOR`.
+
+| Exit code | Meaning |
+|---|---|
+| `0` | success |
+| `1` | validation or config error (bad flag, invalid config, invalid harness, no targets) |
+| `2` | export errors: some items `failed`; the others were still exported |
+| `130` | interrupted (Ctrl+C) |
+
 ## Harness source layout
 
 ```text
