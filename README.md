@@ -176,6 +176,10 @@ agent = Agent(hooks=[AhmHooks()], tools=[*AGENT_TOOLS])
 
 Add `--verbose` (before the command: `ahm -v export`) to see which config file and source folder were used.
 
+## Agent skill
+
+The package ships an `ahm-cli` [Agent Skill](https://agentskills.io) in `skills/ahm-cli/` so agents can operate `ahm` without reading the source. Export it like any other skill, e.g. copy `node_modules/@dezkareid/agentic-harness-manager/skills/ahm-cli` into your harness `skills/` folder and run `ahm export`.
+
 ## Development
 
 ```bash

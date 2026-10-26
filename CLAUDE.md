@@ -31,6 +31,8 @@ src/
 ├── core/             # Harness model (types.ts), frontmatter parsing and the pure loader
 └── utils/
     └── logger.ts     # The only place allowed to write to stdout/stderr
+skills/ahm-cli/        # Bundled Agent Skill (dogfooded via ahm.config.json)
+test/                  # e2e suite, basic-harness fixture, skill sync test
 .github/
 ├── actions/          # setup-js and semantic-release composite actions
 ├── releaserc-template.json
@@ -259,6 +261,15 @@ The pipeline is designed to need **zero stored secrets and zero repository varia
 - Commander errors (unknown option/command) are printed to stderr and exit non-zero.
 - If husky hooks do not run, re-run `pnpm install` (the `prepare` script installs them). CI sets `HUSKY=0`.
 
+## Dogfooding: the ahm-cli skill
+
+The package ships `skills/ahm-cli/` (published through `files`), an Agent Skill that teaches agents to operate `ahm`. This repo is its own harness: `ahm.config.json` sets `"source": "."` and `"targets": ["claude-code"]`, so the loader only finds `skills/ahm-cli`.
+
+- `pnpm dogfood` runs the built CLI (`ahm export --target claude-code`), and `prepack` runs `build` + `dogfood`, so every pack or release exercises the exporter on a real harness.
+- The output `.claude/skills/ahm-cli` is a symlink and is **gitignored on purpose**: it is regenerated locally and must not shadow the source in reviews. The rest of `.claude/` (e.g. `settings.json`) stays committed.
+- Keep the frontmatter portable (`name`, `description`, `metadata` only) so Codex and Antigravity load the skill unchanged; bump `metadata.version` when the skill changes.
+- `skills/ahm-cli/references/target-matrix.md` and `config-schema.md` copy the README `## Target matrix` and `## Configuration` tables; `test/skill.spec.ts` fails when they drift.
+
 ## Documentation
 
-When a CLI command or option is added, updated, removed or renamed, update `AGENTS.md`, `CLAUDE.md` and `README.md`.
+When a CLI command or option is added, updated, removed or renamed, update `AGENTS.md`, `CLAUDE.md`, `README.md` and the `skills/ahm-cli` skill (recipes and references).

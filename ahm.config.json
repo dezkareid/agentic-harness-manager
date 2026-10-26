@@ -1,0 +1,6 @@
+{
+  // Dogfooding: this repo's own harness is the ahm-cli skill in ./skills.
+  // `pnpm dogfood` (also run by prepack) exports it to .claude/skills/ahm-cli.
+  "source": ".",
+  "targets": ["claude-code"]
+}
