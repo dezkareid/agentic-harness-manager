@@ -1,0 +1,36 @@
+{
+  "name": "@dezkareid/agentic-harness-manager",
+  "version": "0.0.0",
+  "description": "CLI to export an agentic harness (skills, context, hooks, subagents) to Claude Code, Codex, Antigravity and Strands",
+  "type": "module",
+  "bin": {
+    "ahm": "dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dezkareid/agentic-harness-manager.git"
+  },
+  "author": "Joel Humberto Gomez Paredes <elmaildeldezkareid@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dezkareid/agentic-harness-manager/issues"
+  },
+  "homepage": "https://github.com/dezkareid/agentic-harness-manager#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "cli",
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "antigravity",
+    "strands",
+    "harness",
+    "agents"
+  ],
+  "files": [
+    "dist"
+  ]
+}
